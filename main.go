@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,9 +28,16 @@ type FileIndexer struct {
 	FileContent string
 }
 
+var configFlag = flag.String("config", "NULL", "To pass a different configuration file")
+
 func initializeConfig() Configuration {
 	config := Configuration{}
-	file, err := os.Open(`config.json`)
+	name := "config.json"
+	if *configFlag != "NULL" {
+		name = *configFlag
+	}
+	fmt.Println(*configFlag)
+	file, err := os.Open(name)
 	defer file.Close()
 	checkerr(err)
 	decoder := json.NewDecoder(file)
@@ -135,6 +143,7 @@ func deleteExistingIndex(name string) error {
 }
 
 func main() {
+	flag.Parse()
 	fmt.Println("Refreshing the index")
 	err := creatIndex()
 	checkerr(err)
