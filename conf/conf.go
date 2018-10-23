@@ -3,6 +3,8 @@ package conf
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/farhaanbukhsh/file-indexer/logger"
 )
 
 // Configuration loads the config file
@@ -21,15 +23,9 @@ func NewConfig(filename string) Configuration {
 	}
 	file, err := os.Open(name)
 	defer file.Close()
-	must(err)
+	logger.Must(err)
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&config)
-	must(err)
+	logger.Must(err)
 	return config
-}
-
-func must(e error) {
-	if e != nil {
-		panic(e)
-	}
 }

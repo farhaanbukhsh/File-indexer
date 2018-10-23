@@ -10,6 +10,7 @@ import (
 
 	"github.com/farhaanbukhsh/file-indexer/conf"
 	"github.com/farhaanbukhsh/file-indexer/indexer"
+	"github.com/farhaanbukhsh/file-indexer/logger"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -38,17 +39,11 @@ func main() {
 	config = conf.NewConfig(*configFlag)
 	fmt.Println("Refreshing the index")
 	err := indexer.NewIndex(config)
-	must(err)
+	logger.Must(err)
 	fmt.Printf("Serving on %v \n", config.Port)
 	router := mux.NewRouter()
 	router.HandleFunc("/index", IndexFile).Methods("GET")
 	router.HandleFunc("/search/{query}", SearchFile).Methods("GET")
 	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	log.Fatal(http.ListenAndServe(config.Port, loggedRouter))
-}
-
-func must(e error) {
-	if e != nil {
-		panic(e)
-	}
 }

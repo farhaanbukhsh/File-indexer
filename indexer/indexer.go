@@ -6,6 +6,7 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/farhaanbukhsh/file-indexer/conf"
+	"github.com/farhaanbukhsh/file-indexer/logger"
 	"github.com/farhaanbukhsh/file-indexer/utility"
 )
 
@@ -52,7 +53,7 @@ func fileNameContentMap(c conf.Configuration) []FileIndexer {
 		}
 		return nil
 	})
-	must(err)
+	logger.Must(err)
 	for _, filename := range files {
 		content := utility.GetContent(filename)
 		filesIndex := NewFileIndexer(filename, content)
@@ -79,10 +80,4 @@ func NewIndex(c conf.Configuration) error {
 		return err
 	}
 	return nil
-}
-
-func must(e error) {
-	if e != nil {
-		panic(e)
-	}
 }

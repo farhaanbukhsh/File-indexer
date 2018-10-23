@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"github.com/farhaanbukhsh/file-indexer/logger"
 )
 
 // GetContent is a function for retrieving data from file
 func GetContent(name string) string {
 	data, err := ioutil.ReadFile(name)
-	must(err)
+	logger.Must(err)
 	return string(data)
 }
 
@@ -22,10 +24,4 @@ func DeleteExistingIndex(name string) error {
 		}
 	}
 	return nil
-}
-
-func must(e error) {
-	if e != nil {
-		panic(e)
-	}
 }
