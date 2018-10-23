@@ -11,22 +11,17 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/farhaanbukhsh/file-indexer/conf"
+	"github.com/farhaanbukhsh/file-indexer/indexer"
 	"github.com/farhaanbukhsh/file-indexer/utility"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
-// FileIndexer is a data structure to hold the content of the file
-type FileIndexer struct {
-	Filename    string
-	FileContent string
-}
-
 var configFlag = flag.String("config", "NULL", "To pass a different configuration file")
 
 var config conf.Configuration
 
-func fileIndexing(indexfilename string, fileIndexer []FileIndexer) error {
+func fileIndexing(indexfilename string, fileIndexer []indexer.FileIndexer) error {
 	err := utility.DeleteExistingIndex(config.IndexFilename)
 	if err != nil {
 		return err
@@ -37,7 +32,7 @@ func fileIndexing(indexfilename string, fileIndexer []FileIndexer) error {
 		return err
 	}
 	for _, fileIndex := range fileIndexer {
-		index.Index(fileIndex.Filename, fileIndex.FileContent)
+		index.Index(fileIndex.FileName, fileIndex.FileContent)
 	}
 	defer index.Close()
 	return nil
@@ -52,10 +47,10 @@ func searchResults(indexFilename string, searchWord string) *bleve.SearchResult 
 	return searchResult
 }
 
-func fileNameContentMap() []FileIndexer {
+func fileNameContentMap() []indexer.FileIndexer {
 	var ROOTPATH = config.RootDirectory
 	var files []string
-	var fileIndexer []FileIndexer
+	var fileIndexer []indexer.FileIndexer
 
 	err := filepath.Walk(ROOTPATH, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
@@ -66,7 +61,7 @@ func fileNameContentMap() []FileIndexer {
 	must(err)
 	for _, filename := range files {
 		content := utility.GetContent(filename)
-		filesIndex := FileIndexer{Filename: filename, FileContent: content}
+		filesIndex := indexer.NewFileIndexer(filename, content)
 		fileIndexer = append(fileIndexer, filesIndex)
 	}
 	return fileIndexer
