@@ -4,23 +4,17 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/blevesearch/bleve"
+	"github.com/farhaanbukhsh/file-indexer/conf"
+	"github.com/farhaanbukhsh/file-indexer/utility"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
-
-// Configuration loads the config file
-type Configuration struct {
-	RootDirectory string
-	IndexFilename string
-	Port          string
-}
 
 // FileIndexer is a data structure to hold the content of the file
 type FileIndexer struct {
@@ -30,34 +24,12 @@ type FileIndexer struct {
 
 var configFlag = flag.String("config", "NULL", "To pass a different configuration file")
 
-func initializeConfig() Configuration {
-	config := Configuration{}
-	name := "config.json"
-	if *configFlag != "NULL" {
-		name = *configFlag
-	}
-	fmt.Println(*configFlag)
-	file, err := os.Open(name)
-	defer file.Close()
-	checkerr(err)
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&config)
-	checkerr(err)
-	return config
-}
-
-var config = initializeConfig()
+var config conf.Configuration
 
 func checkerr(e error) {
 	if e != nil {
 		panic(e)
 	}
-}
-
-func getContent(name string) string {
-	data, err := ioutil.ReadFile(name)
-	checkerr(err)
-	return string(data)
 }
 
 func fileIndexing(indexfilename string, fileIndexer []FileIndexer) error {
@@ -100,14 +72,14 @@ func fileNameContentMap() []FileIndexer {
 	})
 	checkerr(err)
 	for _, filename := range files {
-		content := getContent(filename)
+		content := utility.GetContent(filename)
 		filesIndex = FileIndexer{Filename: filename, FileContent: content}
 		fileIndexer = append(fileIndexer, filesIndex)
 	}
 	return fileIndexer
 }
 
-func creatIndex() error {
+func createIndex() error {
 	var fileIndexer = fileNameContentMap()
 	err := fileIndexing(config.IndexFilename, fileIndexer)
 	if err != nil {
@@ -118,7 +90,7 @@ func creatIndex() error {
 
 // IndexFile is the controller that helps with indexing the file
 func IndexFile(w http.ResponseWriter, r *http.Request) {
-	err := creatIndex()
+	err := createIndex()
 	json.NewEncoder(w).Encode(err)
 	return
 }
@@ -144,10 +116,11 @@ func deleteExistingIndex(name string) error {
 
 func main() {
 	flag.Parse()
+	config = conf.NewConfig(*configFlag)
 	fmt.Println("Refreshing the index")
-	err := creatIndex()
+	err := createIndex()
 	checkerr(err)
-	fmt.Printf("serving on %v \n", config.Port)
+	fmt.Printf("Serving on %v \n", config.Port)
 	router := mux.NewRouter()
 	router.HandleFunc("/index", IndexFile).Methods("GET")
 	router.HandleFunc("/search/{query}", SearchFile).Methods("GET")
