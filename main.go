@@ -38,15 +38,6 @@ func fileIndexing(indexfilename string, fileIndexer []indexer.FileIndexer) error
 	return nil
 }
 
-func searchResults(indexFilename string, searchWord string) *bleve.SearchResult {
-	index, _ := bleve.Open(indexFilename)
-	defer index.Close()
-	query := bleve.NewQueryStringQuery(searchWord)
-	searchRequest := bleve.NewSearchRequest(query)
-	searchResult, _ := index.Search(searchRequest)
-	return searchResult
-}
-
 func fileNameContentMap() []indexer.FileIndexer {
 	var ROOTPATH = config.RootDirectory
 	var files []string
@@ -86,7 +77,7 @@ func IndexFile(w http.ResponseWriter, r *http.Request) {
 // SearchFile is the controller that helps with indexing the file
 func SearchFile(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	searchResult := searchResults(config.IndexFilename, params["query"])
+	searchResult := indexer.Search(config.IndexFilename, params["query"])
 	json.NewEncoder(w).Encode(searchResult.Hits)
 	return
 }
