@@ -26,14 +26,8 @@ var configFlag = flag.String("config", "NULL", "To pass a different configuratio
 
 var config conf.Configuration
 
-func checkerr(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func fileIndexing(indexfilename string, fileIndexer []FileIndexer) error {
-	err := deleteExistingIndex(config.IndexFilename)
+	err := utility.DeleteExistingIndex(config.IndexFilename)
 	if err != nil {
 		return err
 	}
@@ -61,7 +55,6 @@ func searchResults(indexFilename string, searchWord string) *bleve.SearchResult 
 func fileNameContentMap() []FileIndexer {
 	var ROOTPATH = config.RootDirectory
 	var files []string
-	var filesIndex FileIndexer
 	var fileIndexer []FileIndexer
 
 	err := filepath.Walk(ROOTPATH, func(path string, info os.FileInfo, err error) error {
@@ -70,18 +63,18 @@ func fileNameContentMap() []FileIndexer {
 		}
 		return nil
 	})
-	checkerr(err)
+	must(err)
 	for _, filename := range files {
 		content := utility.GetContent(filename)
-		filesIndex = FileIndexer{Filename: filename, FileContent: content}
+		filesIndex := FileIndexer{Filename: filename, FileContent: content}
 		fileIndexer = append(fileIndexer, filesIndex)
 	}
 	return fileIndexer
 }
 
-func createIndex() error {
-	var fileIndexer = fileNameContentMap()
-	err := fileIndexing(config.IndexFilename, fileIndexer)
+func createIndex(c conf.Configuration) error {
+	fileIndexer := fileNameContentMap()
+	err := fileIndexing(c.IndexFilename, fileIndexer)
 	if err != nil {
 		return err
 	}
@@ -90,7 +83,7 @@ func createIndex() error {
 
 // IndexFile is the controller that helps with indexing the file
 func IndexFile(w http.ResponseWriter, r *http.Request) {
-	err := createIndex()
+	err := createIndex(config)
 	json.NewEncoder(w).Encode(err)
 	return
 }
@@ -103,27 +96,22 @@ func SearchFile(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// Check if the index exist if it does, then flushes it off
-func deleteExistingIndex(name string) error {
-	_, err := os.Stat(name)
-	if !os.IsNotExist(err) {
-		if err := os.RemoveAll(name); err != nil {
-			return fmt.Errorf("Can't Delete file: %v", err)
-		}
-	}
-	return nil
-}
-
 func main() {
 	flag.Parse()
 	config = conf.NewConfig(*configFlag)
 	fmt.Println("Refreshing the index")
-	err := createIndex()
-	checkerr(err)
+	err := createIndex(config)
+	must(err)
 	fmt.Printf("Serving on %v \n", config.Port)
 	router := mux.NewRouter()
 	router.HandleFunc("/index", IndexFile).Methods("GET")
 	router.HandleFunc("/search/{query}", SearchFile).Methods("GET")
 	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	log.Fatal(http.ListenAndServe(config.Port, loggedRouter))
+}
+
+func must(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
