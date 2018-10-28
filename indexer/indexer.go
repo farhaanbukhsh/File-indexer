@@ -79,6 +79,7 @@ func NewFileIndexer(fname, fcontent string) FileIndexer {
 
 // NewIndex is a function to create new indexes
 func NewIndex(c conf.Configuration, lg *logger.Logger) {
+	lg.Must(nil, "Refreshing the index")
 	w := watcher.New()
 	w.FilterOps(watcher.Rename, watcher.Move, watcher.Create, watcher.Remove, watcher.Write)
 
