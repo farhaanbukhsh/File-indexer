@@ -1,6 +1,6 @@
 module github.com/farhaanbukhsh/file-indexer
 
-go 1.12
+go 1.11
 
 require (
 	github.com/RoaringBitmap/roaring v0.4.16 // indirect
