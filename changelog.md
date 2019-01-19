@@ -5,3 +5,12 @@ Dexer is used to index the files in a directory, this helps to search a given wo
 
 Dexer use case is dgplug logs to search a given word in the logs and see where it has been talked about.
 
+Contributors
+------------
+
+- Kuntal Majumdar
+- Farhaan Bukhsh
+- Sayan Chowdhury
+- Vaibhav Kaushik
+- Kacper Betański
+- Ashwani Gupta
