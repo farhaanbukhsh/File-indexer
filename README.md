@@ -66,8 +66,6 @@ You can also visit `localhost:<port>` to use the web frontend which comes with t
 
 ### Run locally using docker
 
-> **Note** : The docker build will fail, due to the docker file not being updated along with rest of the program.
-
 You can run the application using Docker in your local machine. It will use the `Dockerfile` instructions. Make sure you have [Docker](https://www.docker.com/) installed in your machine.
 
 Run the following commands to build and run the docker image.
@@ -75,6 +73,9 @@ Run the following commands to build and run the docker image.
 ```bash
 $ git clone https://github.com/dgplug/dexer.git
 $ cd dexer
+$ make logs
 $ make docker-build # builds docker image
 $ make docker-run # runs the image in new container
 ```
+
+One has to make sure the `logs` directory has all the file because dexer runs the indexing at the starting and then keeps it, so if a file is not there it would not index it.
